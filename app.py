@@ -3,63 +3,68 @@ import pandas as pd
 import random
 from collections import Counter
 
-st.set_page_config(page_title="AI Batch Analyser", layout="wide")
+st.set_page_config(page_title="AI Multi-D Predictor", layout="wide")
 
-st.title("🚀 AI Batch Pattern Analyser")
-st.write("Tempelkan ribuan data nomor di bawah ini untuk analisis instan.")
+st.title("🎯 AI Multi-D Pattern Analyser")
+st.write("Input 4D, Output 4D, 3D, & 2D dengan format kustom.")
 
-# --- AREA COPY-PASTE ---
-st.header("1. Input Data (Copy-Paste)")
-raw_data = st.text_area("Tempel nomor di sini (pisahkan dengan spasi, koma, atau baris baru):", 
-                        height=200, 
-                        placeholder="Contoh: 1234, 5678, 9012...")
+# --- INPUT AREA ---
+raw_data = st.text_area("Tempel Data 4D di sini:", height=150, placeholder="Contoh: 1234 5678 9012...")
 
-# Proses Data
 all_numbers = []
 if raw_data:
-    # Membersihkan data: memisahkan berdasarkan spasi, koma, atau enter
-    all_numbers = raw_data.replace(',', ' ').replace('\n', ' ').split()
-    st.success(f"✅ {len(all_numbers)} data berhasil dibaca!")
+    # Membersihkan input agar hanya mengambil angka 4 digit
+    processed = raw_data.replace(',', ' ').replace('\n', ' ').split()
+    all_numbers = [num for num in processed if len(num) == 4 and num.isdigit()]
+    st.success(f"✅ {len(all_numbers)} data 4D valid terbaca.")
 
-# --- ANALISIS & PREDIKSI ---
-if len(all_numbers) > 0:
-    col1, col2 = st.columns([1, 2])
+if all_numbers:
+    all_digits = "".join(all_numbers)
     
-    with col1:
-        st.header("2. Statistik Digit")
-        all_digits = "".join(all_numbers)
-        counts = Counter(all_digits)
-        
-        # Tabel Frekuensi
-        freq_df = pd.DataFrame.from_dict(counts, orient='index', columns=['Muncul']).sort_index()
-        st.bar_chart(freq_df)
-        
-        # Angka Terkuat
-        hot_digits = [item[0] for item in counts.most_common(4)]
-        st.info(f"Digit Terkuat (Hot): {', '.join(hot_digits)}")
+    # Fungsi Helper untuk Generate Format Bintang
+    def generate_formatted(digits_source, length, count):
+        results = []
+        for _ in range(count):
+            num = "".join(random.choices(digits_source, k=length))
+            results.append(f"*{num}*")
+        return "".join(results)
 
-    with col2:
-        st.header("3. Generator Prediksi")
-        num_to_gen = st.slider("Jumlah prediksi yang ingin dihasilkan:", 10, 200, 100)
-        
-        if st.button(f"Generate {num_to_gen} Prediksi Sekarang"):
-            prediksi_list = []
-            
-            for _ in range(num_to_gen):
-                # Metode: Mengambil 4 digit berdasarkan bobot frekuensi (Hot Numbers lebih sering muncul)
-                # Jika ingin murni acak dari history, gunakan random.sample
-                pola = "".join(random.choices(all_digits, k=4))
-                prediksi_list.append(pola)
-            
-            # Tampilan dalam bentuk grid agar rapi
-            st.write(f"### Hasil {num_to_gen} Prediksi:")
-            st.code("  |  ".join(prediksi_list)) 
-            
-            # Fitur Download
-            txt_result = "\n".join(prediksi_list)
-            st.download_button("Download Hasil (TXT)", txt_result, file_name="prediksi.txt")
+    # --- TAMPILAN OUTPUT ---
+    tab1, tab2, tab3 = st.tabs(["🔮 Prediksi 4D", "🔮 Prediksi 3D", "🔮 Prediksi 2D"])
+
+    with tab1:
+        st.header("Prediksi 4D (100 Line)")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.subheader("🔥 Top Prediksi")
+            st.code(generate_formatted(all_digits, 4, 34), wrap_lines=True)
+        with col2:
+            st.subheader("⚡ Prediksi Kedua")
+            st.code(generate_formatted(all_digits, 4, 33), wrap_lines=True)
+        with col3:
+            st.subheader("🛡️ Cadangan")
+            st.code(generate_formatted(all_digits, 4, 33), wrap_lines=True)
+
+    with tab2:
+        st.header("Prediksi 3D (100 Line)")
+        tcol1, tcol2, tcol3 = st.columns(3)
+        with tcol1:
+            st.subheader("🔥 Top Prediksi")
+            st.code(generate_formatted(all_digits, 3, 34), wrap_lines=True)
+        with tcol2:
+            st.subheader("⚡ Prediksi Kedua")
+            st.code(generate_formatted(all_digits, 3, 33), wrap_lines=True)
+        with tcol3:
+            st.subheader("🛡️ Cadangan")
+            st.code(generate_formatted(all_digits, 3, 33), wrap_lines=True)
+
+    with tab3:
+        st.header("Prediksi 2D (10 Line)")
+        st.info("10 Prediksi Terpilih Berdasarkan Bobot Frekuensi")
+        st.code(generate_formatted(all_digits, 2, 10), wrap_lines=True)
+
 else:
-    st.info("Menunggu data ditempelkan untuk memulai analisis.")
+    st.info("Silakan tempel data 4D untuk memproses prediksi.")
 
 st.divider()
-st.caption("Tips: Jika data bertambah setiap hari, cukup copy semua dari file Excel/catatanmu dan tempel ulang di sini.")
+st.caption("Logika: Angka dihasilkan berdasarkan bobot kemunculan digit (probability weight) dari data history.")
